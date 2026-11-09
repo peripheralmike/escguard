@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# EscGuard: give fragmented SSH terminal events time to finish.
+set -euo pipefail
+
+codex_bin=${ESCGUARD_CODEX_BIN:-$(type -P codex || true)}
+if [[ -z "$codex_bin" || ! -x "$codex_bin" ]]; then
+    printf '%s\n' 'EscGuard: cannot find Codex. Install it or set ESCGUARD_CODEX_BIN to its executable.' >&2
+    exit 1
+fi
+# Shell aliases are ignored by type -P, so alias codex=codex-ssh is safe.
+if [[ "$codex_bin" -ef "${BASH_SOURCE[0]}" ]]; then
+    printf '%s\n' 'EscGuard: the Codex path points back to this launcher.' >&2
+    exit 1
+fi
+if [[ ! -t 0 || ! -t 1 ]]; then
+    exec "$codex_bin" "$@"
+fi
+if [[ -n ${TMUX:-} ]]; then
+    printf '%s\n' 'EscGuard: already inside tmux; using its existing input settings.' >&2
+    exec "$codex_bin" "$@"
+fi
+if ! command -v tmux >/dev/null 2>&1; then
+    printf '%s\n' 'EscGuard: tmux is required. On Debian: sudo apt install tmux' >&2
+    exit 1
+fi
+config=${ESCGUARD_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/escguard/tmux.conf}
+if [[ ! -r "$config" ]]; then
+    printf 'EscGuard: configuration not found: %s\nRun install.sh first.\n' "$config" >&2
+    exit 1
+fi
+exec tmux -L escguard -f "$config" new-session -c "$PWD" -- "$codex_bin" "$@"
