@@ -1,5 +1,7 @@
 # EscGuard
 
+**TL;DR:** Using Codex over SSH from Windows kept putting random extra characters in my terminal when I pressed arrow keys, scrolled, or switched windows. This runs Codex through tmux and stops it happening for me. It is a workaround, not a perfect fix.
+
 I use agentic coding tools over SSH from Windows to Linux. In Codex, ordinary things like pressing an arrow key, scrolling, or switching windows sometimes put extra characters such as `[A`, `[B`, and `[O` into the prompt. It is frustrating when I just want to use the terminal freely.
 
 ![EscGuard showing clean terminal input](images/escguard.png)
